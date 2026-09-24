@@ -7,7 +7,7 @@ How nice it would be if your savings and investments in your bank would only gro
 
 Functional Requirements
 User Interaction
-The application uses the bufio.Scanner from the bufio package for all user input. Handle EOF (Ctrl+D) gracefully by breaking out of input loops when scanner.Scan() returns false. The system must handle invalid inputs gracefully, displaying appropriate error messages for scenarios like non-existent usernames or insufficient funds.
+The application uses the `bufio.Scanner` from the `bufio` package for all user input. Handle EOF (Ctrl+D) gracefully by breaking out of input loops when `scanner.Scan()` returns false. The system must handle invalid inputs gracefully, displaying appropriate error messages for scenarios like non-existent usernames or insufficient funds.
 
 Login System: Users must log in by entering their names. The system supports four users: Alice, Bob, Charlie, and Diana, who can all log in and send money to each other.
 
