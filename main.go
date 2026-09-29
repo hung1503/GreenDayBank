@@ -10,6 +10,7 @@ import (
 )
 
 type InvestType struct {
+	InvestBalance decimal.Decimal
 	LowRisk decimal.Decimal
 	MediumRisk decimal.Decimal
 	HighRisk decimal.Decimal
@@ -18,13 +19,136 @@ type InvestType struct {
 type UserBankData struct {
 	Username string
 	Cash decimal.Decimal
-	Deposit decimal.Decimal
+	Balance decimal.Decimal
 	InvestFund InvestType
 }
 
+var userDatas = []UserBankData{
+		{
+			Username: "Alice",
+			Cash: decimal.NewFromFloat(1000),
+			Balance: decimal.NewFromFloat(0),
+			InvestFund: InvestType{
+				InvestBalance: decimal.NewFromFloat(0),
+				LowRisk: decimal.NewFromFloat(0),
+				MediumRisk: decimal.NewFromFloat(0),
+				HighRisk: decimal.NewFromFloat(0),
+			},
+		},
+		{
+			Username: "Bob",
+			Cash: decimal.NewFromInt(1000),
+			Balance: decimal.NewFromFloat(0),
+			InvestFund: InvestType{
+				InvestBalance: decimal.NewFromFloat(0),
+				LowRisk: decimal.NewFromFloat(0),
+				MediumRisk: decimal.NewFromFloat(0),
+				HighRisk: decimal.NewFromFloat(0),
+			},
+		},		
+		{
+			Username: "Charlie",
+			Cash: decimal.NewFromInt(1000),
+			Balance: decimal.NewFromFloat(0),
+			InvestFund: InvestType{
+				InvestBalance: decimal.NewFromFloat(0),
+				LowRisk: decimal.NewFromFloat(0),
+				MediumRisk: decimal.NewFromFloat(0),
+				HighRisk: decimal.NewFromFloat(0),
+			},
+		},
+				{
+			Username: "Diana",
+			Cash: decimal.NewFromInt(1000),
+			Balance: decimal.NewFromFloat(0),
+			InvestFund: InvestType{
+				InvestBalance: decimal.NewFromFloat(0),
+				LowRisk: decimal.NewFromFloat(0),
+				MediumRisk: decimal.NewFromFloat(0),
+				HighRisk: decimal.NewFromFloat(0),
+			},
+		},
+	}
+
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
-	chooseUsername(scanner)
+	username := chooseUsername(scanner)
+	inOperation(scanner, username)
+}
+
+func inOperation(scanner *bufio.Scanner, username string) {
+	userData := UserBankData{}
+	for _, data := range userDatas {
+		if data.Username == username {
+			userData = data
+		}
+	}
+	for {
+		showBankMenu()
+		operation := scanText(scanner)
+		switch operation {
+		case "1":
+			// Show balance
+			showBalance(userData)
+		case "2":
+			// Deposit money
+			depositMoney(&userData, scanner)
+		case "3":
+			// Withdraw money
+			withdrawMoney(&userData, scanner)
+		case "4":
+			// Send money to a person
+		case "5":
+			// Invest
+		case "6":
+			// Transfer between accounts
+		case "7":
+			// Withdraw all investment
+		case "8":
+			// Logout
+		case "9":
+			// Exit
+			fmt.Println("Exiting...")
+			os.Exit(0)
+		default:
+			fmt.Println("Invalid operation!. Choose again")
+		}
+	}
+}
+
+func withdrawMoney(userData *UserBankData, scanner *bufio.Scanner) {
+	for {
+		fmt.Print("Enter the amount you want to withdraw: ")
+		withdraw, err := decimal.NewFromString(scanText(scanner))
+		if err != nil {
+			fmt.Println("Invalid withdraw!")
+		} else if withdraw.GreaterThan(userData.Balance) {
+			fmt.Println("Insufficient fund! Try again")
+		} else {
+			userData.Balance = userData.Balance.Sub(withdraw)
+			userData.Cash = withdraw
+		}
+	}
+}
+
+func depositMoney(userData *UserBankData, scanner *bufio.Scanner) {
+	for {
+		fmt.Print("Enter the amount you want to deposit:")
+		deposit, err := decimal.NewFromString(scanText(scanner))
+		if err != nil {
+			fmt.Println("Invalid deposit")
+		} else if deposit.GreaterThan(userData.Cash) {
+			fmt.Println("Invalid cash fund!")
+		} else {
+			userData.Balance = deposit
+			userData.Cash = userData.Cash.Sub(deposit)
+			break
+		}
+	}
+}
+
+func showBalance(userData UserBankData) {
+	println("Your balance is: $", userData.Balance)
 }
 
 func showBankMenu() {
@@ -48,13 +172,13 @@ func scanText(scanner *bufio.Scanner) string {
 		input= strings.TrimSpace(scanner.Text())
 	} else{
 		fmt.Println("EOF: Exiting")
-		os.Exit(0)
+		os.Exit(1)
 	}
 	return input
 }
 
-func chooseUsername(scanner *bufio.Scanner) {
-	fmt.Println("Enter your username:")
+func chooseUsername(scanner *bufio.Scanner) string {
+	fmt.Print("Enter your username: ")
 	username:=scanText(scanner)
 	switch username {
 	case "Alice":
@@ -65,4 +189,6 @@ func chooseUsername(scanner *bufio.Scanner) {
 		fmt.Println("Invalid username. Please try again!")
 		chooseUsername(scanner)
 	}
+	fmt.Println("Welcome", username)
+	return username
 }
