@@ -89,7 +89,7 @@ func inOperation(scanner *bufio.Scanner, username string) {
 		switch operation {
 		case "1":
 			// Show balance
-			showBalance(userData)
+			showBalance(&userData)
 		case "2":
 			// Deposit money
 			depositMoney(&userData, scanner)
@@ -98,6 +98,7 @@ func inOperation(scanner *bufio.Scanner, username string) {
 			withdrawMoney(&userData, scanner)
 		case "4":
 			// Send money to a person
+			sendMoneytoPpl(&userData, scanner)
 		case "5":
 			// Invest
 		case "6":
@@ -116,6 +117,42 @@ func inOperation(scanner *bufio.Scanner, username string) {
 	}
 }
 
+func investMoney(userData *UserBankData, scanner *bufio.Scanner) {
+	
+}
+
+func sendMoneytoPpl(userData *UserBankData, scanner *bufio.Scanner) {
+	fmt.Print("Enter the username you want to send money to: ")
+	found := false
+	OUTERLOOP:
+	for{
+		user := scanText(scanner) 
+		if user == userData.Username {
+			fmt.Println("Invalid username! Please try again!")
+			continue
+		}
+		for _, u :=range userDatas {
+			if u.Username == user {
+				found = true
+				fmt.Print("Enter the amount you want to send to " + user + " :")
+				amount, err := decimal.NewFromString(scanText(scanner))
+				if err!=nil {
+					fmt.Println("Invalid withdraw!")
+				} else if amount.GreaterThan(userData.Balance) {
+					fmt.Println("Insufficient fund! Try again")
+				} else {
+					userData.Balance = userData.Balance.Sub(amount)
+					u.Balance = u.Balance.Add(amount)
+					break OUTERLOOP
+				}
+			} 
+		}
+		if !found {
+			fmt.Println("Invalid username! Please try again!")
+		}
+	}
+}
+
 func withdrawMoney(userData *UserBankData, scanner *bufio.Scanner) {
 	for {
 		fmt.Print("Enter the amount you want to withdraw: ")
@@ -127,13 +164,14 @@ func withdrawMoney(userData *UserBankData, scanner *bufio.Scanner) {
 		} else {
 			userData.Balance = userData.Balance.Sub(withdraw)
 			userData.Cash = withdraw
+			break
 		}
 	}
 }
 
 func depositMoney(userData *UserBankData, scanner *bufio.Scanner) {
 	for {
-		fmt.Print("Enter the amount you want to deposit:")
+		fmt.Print("Enter the amount you want to deposit: ")
 		deposit, err := decimal.NewFromString(scanText(scanner))
 		if err != nil {
 			fmt.Println("Invalid deposit")
@@ -147,23 +185,26 @@ func depositMoney(userData *UserBankData, scanner *bufio.Scanner) {
 	}
 }
 
-func showBalance(userData UserBankData) {
-	println("Your balance is: $", userData.Balance)
+func showBalance(userData *UserBankData) {
+	interest := userData.Balance.Mul(decimal.NewFromFloat(0.01))
+	userData.Balance = userData.Balance.Add(interest)
+	fmt.Println("Your balance is: $", userData.Balance)
 }
 
 func showBankMenu() {
-	fmt.Println(`
-		--- Banking App Menu ---
-		1. Show balance
-		2. Deposit money
-		3. Withdraw money
-		4. Send money to a person
-		5. Invest in funds
-		6. Transfer between accounts
-		7. Withdraw all investments
-		8. Logout
-		9. Exit
-	`)
+	fmt.Println(
+`
+--- Banking App Menu ---
+1. Show balance
+2. Deposit money
+3. Withdraw money
+4. Send money to a person
+5. Invest in funds
+6. Transfer between accounts
+7. Withdraw all investments
+8. Logout
+9. Exit
+`)
 }
 
 func scanText(scanner *bufio.Scanner) string {
