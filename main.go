@@ -72,14 +72,17 @@ var userDatas = []UserBankData{
 
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
-	username := chooseUsername(scanner)
-	inOperation(scanner, username)
+	for {
+		username := chooseUsername(scanner)
+		inOperation(scanner, &username)
+	}
+	
 }
 
-func inOperation(scanner *bufio.Scanner, username string) {
+func inOperation(scanner *bufio.Scanner, username *string) {
 	userData := UserBankData{}
 	for _, data := range userDatas {
-		if data.Username == username {
+		if data.Username == *username {
 			userData = data
 		}
 	}
@@ -110,6 +113,7 @@ func inOperation(scanner *bufio.Scanner, username string) {
 			withdrawInvestment(&userData, scanner)
 		case "8":
 			// Logout
+			return
 		case "9":
 			// Exit
 			fmt.Println("Exiting...")
