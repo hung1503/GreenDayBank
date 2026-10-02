@@ -101,6 +101,7 @@ func inOperation(scanner *bufio.Scanner, username string) {
 			sendMoneytoPpl(&userData, scanner)
 		case "5":
 			// Invest
+			investMoney(&userData, scanner)
 		case "6":
 			// Transfer between accounts
 		case "7":
@@ -118,6 +119,46 @@ func inOperation(scanner *bufio.Scanner, username string) {
 }
 
 func investMoney(userData *UserBankData, scanner *bufio.Scanner) {
+	fmt.Println("Investment account:", userData.InvestFund.InvestBalance)
+	fmt.Print(`
+1. LOW_RISK
+2. MEDIUM_RISK
+3. HIGH_RISK
+`)
+	OUTERLOOP:
+	for {
+		fmt.Print("Choose the investment: ")
+		invest:=scanText(scanner)
+		switch invest {
+		case "1":
+			investFund(scanner, &userData.InvestFund.InvestBalance, &userData.InvestFund.LowRisk)
+			break OUTERLOOP
+		case "2" :
+			investFund(scanner, &userData.InvestFund.InvestBalance, &userData.InvestFund.MediumRisk)
+			break OUTERLOOP
+		case "3" :
+			investFund(scanner, &userData.InvestFund.InvestBalance, &userData.InvestFund.HighRisk)
+			break OUTERLOOP
+		default:
+			fmt.Println("Invalid fund! Please try again!")
+		}
+	}
+}
+
+func investFund(scanner *bufio.Scanner, investBalance *decimal.Decimal, investFund *decimal.Decimal) {
+	for {
+		fmt.Print("Enter the amount you want to invest:") 
+		amount, err:= decimal.NewFromString(scanText(scanner))
+		if err != nil {
+			fmt.Println("Invalid input")
+		} else if amount.GreaterThan(*investBalance) {
+			fmt.Println("Insufficient fund")
+		} else {
+			*investBalance = investBalance.Sub(amount)
+			*investFund = investFund.Add(amount) 
+			break
+		}
+	}
 	
 }
 
@@ -170,6 +211,12 @@ func withdrawMoney(userData *UserBankData, scanner *bufio.Scanner) {
 }
 
 func depositMoney(userData *UserBankData, scanner *bufio.Scanner) {
+	fmt.Print(`
+1. Saving account
+2. Investment account
+Enter the account to deposit: `)
+	account := scanText(scanner)
+
 	for {
 		fmt.Print("Enter the amount you want to deposit: ")
 		deposit, err := decimal.NewFromString(scanText(scanner))
@@ -177,18 +224,39 @@ func depositMoney(userData *UserBankData, scanner *bufio.Scanner) {
 			fmt.Println("Invalid deposit")
 		} else if deposit.GreaterThan(userData.Cash) {
 			fmt.Println("Invalid cash fund!")
-		} else {
-			userData.Balance = deposit
-			userData.Cash = userData.Cash.Sub(deposit)
-			break
+		} else {	
+			if account == "1" {
+				userData.Balance = deposit
+				userData.Cash = userData.Cash.Sub(deposit)
+				break
+			} else if account == "2" {
+				userData.InvestFund.InvestBalance = deposit
+				userData.Cash = userData.Cash.Sub(deposit)
+				break
+			}
 		}
 	}
 }
 
 func showBalance(userData *UserBankData) {
-	interest := userData.Balance.Mul(decimal.NewFromFloat(0.01))
-	userData.Balance = userData.Balance.Add(interest)
-	fmt.Println("Your balance is: $", userData.Balance)
+	// saving balance
+	interestBalance := userData.Balance.Mul(decimal.NewFromFloat(0.01))
+	userData.Balance = userData.Balance.Add(interestBalance)
+	// low risk investment balance
+	lowRiskBalance := userData.InvestFund.LowRisk.Mul(decimal.NewFromFloat(0.02))
+	userData.InvestFund.LowRisk = userData.InvestFund.LowRisk.Add(lowRiskBalance)
+	// medium risk investment balance
+	mediumRiskBalance := userData.InvestFund.MediumRisk.Mul(decimal.NewFromFloat(0.05))
+	userData.InvestFund.MediumRisk = userData.InvestFund.MediumRisk.Add(mediumRiskBalance)
+	// high risk investment balance
+	highRiskBalance := userData.InvestFund.HighRisk.Mul(decimal.NewFromFloat(0.1))
+	userData.InvestFund.HighRisk = userData.InvestFund.HighRisk.Add(highRiskBalance)
+
+	fmt.Println("Your saving balance is: $", userData.Balance)
+	fmt.Println("Your investment balance is: $", userData.InvestFund.InvestBalance)
+	fmt.Println("Low_Risk investment fund: $", userData.InvestFund.LowRisk)
+	fmt.Println("Medium_Risk investment fund: $", userData.InvestFund.MediumRisk)
+	fmt.Println("High_Risk investment fund: $", userData.InvestFund.HighRisk)
 }
 
 func showBankMenu() {
